@@ -5,9 +5,18 @@ const mongoose = require("mongoose");
 const Product = require("../models/product");
 
 router.get("/", (req, res, next) => {
-  res.status(200).json({
-    message: "Handling GET requests to /products",
-  });
+  Product.find()
+    .exec()
+    .then((docs) => {
+      console.log(docs);
+      res.status(200).json(docs);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({
+        error: err,
+      });
+    });
 });
 
 router.post("/", (req, res, next) => {
@@ -61,8 +70,26 @@ router.patch("/:productId", (req, res, next) => {
 });
 
 router.delete("/:productId", (req, res, next) => {
-  res.status(200).json({
-    message: "Deleted product!",
-  });
+  const id = req.params.productId;
+  Product.deleteOne({ _id: id })
+    .exec()
+    // .then((res) => {
+    //   res.status(200).json(result);
+    // })
+    .then((result) => {
+      if (result.deletedCount > 0) {
+        res.status(200).json({
+          message: "Product deleted successfully",
+        });
+      } else {
+        res.status(404).json({
+          message: "No valid entry found for provided ID",
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ error: err });
+    });
 });
 module.exports = router;
